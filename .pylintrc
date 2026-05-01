@@ -1,0 +1,12 @@
+[MASTER]
+disable=C0114,C0115,C0116
+
+[FORMAT]
+max-line-length=100
+
+[DESIGN]
+max-args=7
+max-locals=15
+max-returns=6
+max-branches=12
+max-statements=50

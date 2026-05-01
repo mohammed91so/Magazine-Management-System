@@ -1,0 +1,90 @@
+
+#  Python 
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.so
+
+# ── Virtual environments  
+.venv/
+venv/
+env/
+ENV/
+.env
+!.env.example
+
+# ── Distribution / packaging  
+dist/
+build/
+*.egg-info/
+*.egg
+MANIFEST
+.eggs/
+wheels/
+*.whl
+
+# ── Testing & coverage  
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+*.lcov
+.tox/
+.nox/
+
+# ── Type checkers & linters 
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.ruff_cache/
+.pylint.d/
+
+# ── Database files  
+*.db
+*.sqlite
+*.sqlite3
+database/backups/
+*.sql.bak
+
+# ── Logs & monitoring 
+*.log
+logs/
+*.log.*
+
+# ── IDE & editors  
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# ── OS artifacts  
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Inno Setup / installer output  
+installer/Output/
+installer/*.exe
+*.iss.bak
+
+# ── Assets (large/generated binaries) 
+assets/*.tmp
+assets/generated/
+
+# ── Secrets & local config  
+.env
+*.pem
+*.key
+secrets.json
+local_settings.py
+
+# ── pyproject / build tools cache  
+.pdm-python
+.pdm-build/
+__pypackages__/
+
