@@ -55,3 +55,14 @@ class TestAppNavigation:
 
         assert events == ["tkraise"]
         assert operations == ["page_switch_reports"]
+
+    def test_refresh_all_pages_calls_on_show_when_available(self):
+        events = []
+        dashboard = DummyPage(events)
+        reports = DummyPage(events, with_on_show=False)
+        sales = DummyPage(events)
+        app = DummyApp({"dashboard": dashboard, "reports": reports, "sales": sales})
+
+        App.refresh_all_pages(app)
+
+        assert events == ["on_show", "on_show"]

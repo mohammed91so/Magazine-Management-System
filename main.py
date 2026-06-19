@@ -158,6 +158,13 @@ class App(ctk.CTk):
                 f"Failed to load page: {name}\n\nError: {e}"
             )
 
+    def refresh_all_pages(self):
+        """Refresh all pages that expose an on_show lifecycle hook."""
+        for page in self.pages.values():
+            on_show = getattr(page, "on_show", None)
+            if callable(on_show):
+                on_show()
+
 
 def handle_global_exception(exc_type, exc_value, exc_traceback):
     """Global exception handler for uncaught exceptions."""
