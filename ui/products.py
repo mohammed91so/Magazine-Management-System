@@ -9,25 +9,33 @@ Features:
 """
 
 import customtkinter as ctk
-from tkinter import messagebox
+from tkinter import messagebox, StringVar
 from services.inventory_service import (
     create_product,
     list_products,
     update_product,
     delete_product,
-    get_product
+    get_product,
+    get_low_stock_products,
+    get_out_of_stock_products,
+    get_expired_products,
+    get_expiring_soon_products,
 )
 from utils.helpers import format_currency
 
 
 class ProductsPage(ctk.CTkFrame):
     """Products management page with table view and CRUD operations."""
+
+    FILTER_OPTIONS = ["All", "Low stock", "Out of stock", "Expired", "Expiring soon"]
     
     def __init__(self, parent):
         super().__init__(parent)
         self.pack_propagate(False)
         
         self.selected_product_id = None
+        self.selected_filter = "All"
+        self.search_var = StringVar(value="")
         
         self._setup_ui()
         self.refresh()
@@ -54,6 +62,9 @@ class ProductsPage(ctk.CTkFrame):
         self.buttons_frame.pack(fill="x", padx=20, pady=5)
         
         self._setup_buttons()
+
+        # Filter controls
+        self._setup_filter_controls()
         
         # Products table
         self._setup_table()
@@ -128,6 +139,29 @@ class ProductsPage(ctk.CTkFrame):
             command=self.refresh
         )
         self.refresh_btn.pack(side="right", padx=5, pady=10)
+
+    def _setup_filter_controls(self):
+        """Setup search and filter controls above the table."""
+        self.filter_frame = ctk.CTkFrame(self)
+        self.filter_frame.pack(fill="x", padx=20, pady=5)
+
+        ctk.CTkLabel(self.filter_frame, text="Search:").pack(side="left", padx=(10, 5), pady=10)
+        self.search_entry = ctk.CTkEntry(
+            self.filter_frame,
+            textvariable=self.search_var,
+            placeholder_text="Search by product name"
+        )
+        self.search_entry.pack(side="left", fill="x", expand=True, padx=5, pady=10)
+        self.search_entry.bind("<KeyRelease>", lambda event: self.refresh())
+
+        ctk.CTkLabel(self.filter_frame, text="Filter:").pack(side="left", padx=(10, 5), pady=10)
+        self.filter_menu = ctk.CTkOptionMenu(
+            self.filter_frame,
+            values=self.FILTER_OPTIONS,
+            command=self.on_filter_change
+        )
+        self.filter_menu.pack(side="left", padx=(5, 10), pady=10)
+        self.filter_menu.set(self.selected_filter)
     
     def _setup_table(self):
         """Setup products table."""
@@ -174,6 +208,52 @@ class ProductsPage(ctk.CTkFrame):
             command=lambda pid=product["id"]: self.select_product(pid)
         )
         select_btn.pack(side="left", padx=5)
+
+    def on_filter_change(self, selected_filter):
+        """Update the current filter and refresh the visible product rows."""
+        self.selected_filter = selected_filter
+        self.refresh()
+
+    def _get_products_for_filter(self, filter_name):
+        """Get the product list for the selected filter option."""
+        if filter_name == "Low stock":
+            return get_low_stock_products(threshold=10)
+        if filter_name == "Out of stock":
+            return get_out_of_stock_products()
+        if filter_name == "Expired":
+            return get_expired_products()
+        if filter_name == "Expiring soon":
+            return get_expiring_soon_products()
+        return list_products()
+
+    def _apply_search(self, products, search_text):
+        """Apply a case-insensitive name search to a product list."""
+        normalized_search = search_text.strip().lower()
+        if not normalized_search:
+            return products
+
+        return [
+            product for product in products
+            if normalized_search in product["name"].lower()
+        ]
+
+    def _get_filtered_products(self):
+        """Get products for the current filter and search state."""
+        products = self._get_products_for_filter(self.selected_filter)
+        return self._apply_search(products, self.search_var.get())
+
+    def _render_products(self, products):
+        """Render the provided product list in the table."""
+        # Clear existing rows
+        for widget in self.table_frame.winfo_children():
+            widget.destroy()
+
+        # Recreate header
+        self._create_table_header()
+
+        # Add product rows
+        for product in products:
+            self._create_product_row(product)
     
     def add_product(self):
         """Add a new product."""
@@ -279,16 +359,7 @@ class ProductsPage(ctk.CTkFrame):
     
     def refresh(self):
         """Refresh products table."""
-        # Clear existing rows
-        for widget in self.table_frame.winfo_children():
-            widget.destroy()
-        
-        # Recreate header
-        self._create_table_header()
-        
-        # Add product rows
-        products = list_products()
-        for product in products:
-            self._create_product_row(product)
+        products = self._get_filtered_products()
+        self._render_products(products)
 
 

@@ -19,6 +19,9 @@ from utils.monitoring import monitoring
 
 class App(ctk.CTk):
     """Main application class with graceful error handling."""
+
+    ACTIVE_NAV_FG_COLOR = "#2E8B57"
+    ACTIVE_NAV_HOVER_COLOR = "#256f46"
     
     def __init__(self):
         super().__init__()
@@ -88,6 +91,10 @@ class App(ctk.CTk):
     
     def _setup_navigation(self):
         """Setup sidebar navigation."""
+        self.current_page = None
+        self.nav_buttons = {}
+        self.nav_button_defaults = {}
+
         # App title in sidebar
         title_label = ctk.CTkLabel(
             self.sidebar,
@@ -97,33 +104,53 @@ class App(ctk.CTk):
         title_label.pack(pady=20)
         
         # Navigation buttons
-        ctk.CTkButton(
+        self.nav_buttons["dashboard"] = ctk.CTkButton(
             self.sidebar,
             text="Dashboard",
             command=lambda: self.show_page("dashboard"),
             height=40
-        ).pack(pady=5, padx=10, fill="x")
+        )
+        self.nav_button_defaults["dashboard"] = {
+            "fg_color": self.nav_buttons["dashboard"].cget("fg_color"),
+            "hover_color": self.nav_buttons["dashboard"].cget("hover_color"),
+        }
+        self.nav_buttons["dashboard"].pack(pady=5, padx=10, fill="x")
         
-        ctk.CTkButton(
+        self.nav_buttons["products"] = ctk.CTkButton(
             self.sidebar,
             text="Products",
             command=lambda: self.show_page("products"),
             height=40
-        ).pack(pady=5, padx=10, fill="x")
+        )
+        self.nav_button_defaults["products"] = {
+            "fg_color": self.nav_buttons["products"].cget("fg_color"),
+            "hover_color": self.nav_buttons["products"].cget("hover_color"),
+        }
+        self.nav_buttons["products"].pack(pady=5, padx=10, fill="x")
         
-        ctk.CTkButton(
+        self.nav_buttons["sales"] = ctk.CTkButton(
             self.sidebar,
             text="Sales",
             command=lambda: self.show_page("sales"),
             height=40
-        ).pack(pady=5, padx=10, fill="x")
+        )
+        self.nav_button_defaults["sales"] = {
+            "fg_color": self.nav_buttons["sales"].cget("fg_color"),
+            "hover_color": self.nav_buttons["sales"].cget("hover_color"),
+        }
+        self.nav_buttons["sales"].pack(pady=5, padx=10, fill="x")
         
-        ctk.CTkButton(
+        self.nav_buttons["reports"] = ctk.CTkButton(
             self.sidebar,
             text="Reports",
             command=lambda: self.show_page("reports"),
             height=40
-        ).pack(pady=5, padx=10, fill="x")
+        )
+        self.nav_button_defaults["reports"] = {
+            "fg_color": self.nav_buttons["reports"].cget("fg_color"),
+            "hover_color": self.nav_buttons["reports"].cget("hover_color"),
+        }
+        self.nav_buttons["reports"].pack(pady=5, padx=10, fill="x")
         
         # Version label
         version_label = ctk.CTkLabel(
@@ -133,6 +160,23 @@ class App(ctk.CTk):
             text_color="gray"
         )
         version_label.pack(side="bottom", pady=10)
+
+    def update_navigation_state(self, active_page: str):
+        """Update sidebar button styling so only the active page stays highlighted."""
+        self.current_page = active_page
+
+        for page_name, button in self.nav_buttons.items():
+            if page_name == active_page:
+                button.configure(
+                    fg_color=self.ACTIVE_NAV_FG_COLOR,
+                    hover_color=self.ACTIVE_NAV_HOVER_COLOR
+                )
+            else:
+                default_colors = self.nav_button_defaults[page_name]
+                button.configure(
+                    fg_color=default_colors["fg_color"],
+                    hover_color=default_colors["hover_color"]
+                )
     
     def show_page(self, name: str):
         """
@@ -148,6 +192,7 @@ class App(ctk.CTk):
                 if callable(on_show):
                     on_show()
                 page.tkraise()
+                self.update_navigation_state(name)
                 logger.debug(f"Switched to page: {name}")
                 monitoring.log_operation(f"page_switch_{name}")
         except Exception as e:
@@ -157,6 +202,13 @@ class App(ctk.CTk):
                 "Navigation Error",
                 f"Failed to load page: {name}\n\nError: {e}"
             )
+
+    def refresh_all_pages(self):
+        """Refresh all pages that expose an on_show lifecycle hook."""
+        for page in self.pages.values():
+            on_show = getattr(page, "on_show", None)
+            if callable(on_show):
+                on_show()
 
 
 def handle_global_exception(exc_type, exc_value, exc_traceback):

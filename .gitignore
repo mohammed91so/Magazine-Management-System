@@ -1,5 +1,6 @@
-
-#  Python 
+# ========================
+# ── Python 
+# ========================
 __pycache__/
 *.py[cod]
 *$py.class
@@ -7,15 +8,20 @@ __pycache__/
 *.pyd
 *.so
 
+# ========================
 # ── Virtual environments  
+# ========================
 .venv/
 venv/
 env/
 ENV/
 .env
+.env.*
 !.env.example
 
+# ============================
 # ── Distribution / packaging  
+# ============================
 dist/
 build/
 *.egg-info/
@@ -25,8 +31,12 @@ MANIFEST
 wheels/
 *.whl
 
+# ========================
 # ── Testing & coverage  
+# ========================
 .pytest_cache/
+.pytest-temp/
+.pytest-temp-*/
 .coverage
 .coverage.*
 coverage.xml
@@ -35,26 +45,34 @@ htmlcov/
 .tox/
 .nox/
 
+# ===========================
 # ── Type checkers & linters 
+# ===========================
 .mypy_cache/
 .dmypy.json
 dmypy.json
 .ruff_cache/
 .pylint.d/
 
+# ========================
 # ── Database files  
+# ========================
 *.db
 *.sqlite
 *.sqlite3
 database/backups/
 *.sql.bak
 
+# ========================
 # ── Logs & monitoring 
+# ========================
 *.log
 logs/
 *.log.*
 
+# ========================
 # ── IDE & editors  
+# ========================
 .vscode/
 .idea/
 *.suo
@@ -62,28 +80,39 @@ logs/
 *.userosscache
 *.sln.docstates
 
+# ========================
 # ── OS artifacts  
+# ========================
 .DS_Store
 Thumbs.db
 desktop.ini
 
+# ==================================
 # ── Inno Setup / installer output  
+# ==================================
 installer/Output/
 installer/*.exe
 *.iss.bak
 
+# ======================================
 # ── Assets (large/generated binaries) 
+# ======================================
 assets/*.tmp
 assets/generated/
+.tmp/
 
+# ===========================
 # ── Secrets & local config  
+# ===========================
 .env
 *.pem
 *.key
 secrets.json
 local_settings.py
 
+# ==================================
 # ── pyproject / build tools cache  
+# ==================================
 .pdm-python
 .pdm-build/
 __pypackages__/
