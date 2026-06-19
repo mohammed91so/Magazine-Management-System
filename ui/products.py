@@ -272,6 +272,10 @@ class ProductsPage(ctk.CTkFrame):
         self.quantity_entry.delete(0, "end")
         self.expiration_entry.delete(0, "end")
         self.selected_product_id = None
+
+    def on_show(self):
+        """Refresh product data when the page becomes visible."""
+        self.refresh()
     
     def refresh(self):
         """Refresh products table."""

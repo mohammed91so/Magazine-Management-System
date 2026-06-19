@@ -188,6 +188,11 @@ class SalesPage(ctk.CTkFrame):
         """Refresh all data."""
         self.refresh_products()
         self.refresh_history()
+
+    def on_show(self):
+        """Refresh product and sales data when the page becomes visible."""
+        self.refresh_products()
+        self.refresh_history()
     
     def on_product_select(self, selection):
         """Handle product selection."""
