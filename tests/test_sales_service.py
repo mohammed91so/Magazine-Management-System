@@ -3,9 +3,11 @@ Unit tests for sales service layer.
 """
 
 import pytest
+
 from services.sales_service import sell_product, get_sales_history
-from services.inventory_service import create_product
+from services.inventory_service import create_product, get_product
 from utils.validators import ValidationError
+from database import queries
 
 
 class TestSalesService:
@@ -22,9 +24,16 @@ class TestSalesService:
         assert result["profit"] == 25.0
         
         # Verify stock decreased
-        from services.inventory_service import get_product
         product = get_product(product_id)
         assert product["quantity"] == 45
+
+    def test_sell_product_with_string_quantity(self, temp_db):
+        product_id = create_product("Test Product", 10.0, 15.0, 50, "2030-12-31")
+
+        result = sell_product(product_id, "5")
+
+        assert result["quantity"] == 5
+        assert result["total_price"] == 75.0
     
     def test_sell_product_invalid_quantity(self, temp_db):
         product_id = create_product("Test", 10.0, 15.0, 50, "2030-12-31")
@@ -34,6 +43,30 @@ class TestSalesService:
         
         with pytest.raises(ValidationError, match="Quantity cannot be negative"):
             sell_product(product_id, -5)
+
+    def test_sell_product_empty_quantity_string(self, temp_db):
+        product_id = create_product("Test", 10.0, 15.0, 50, "2030-12-31")
+
+        with pytest.raises(ValidationError, match="Quantity must be a valid integer"):
+            sell_product(product_id, "")
+
+    def test_sell_product_invalid_quantity_string(self, temp_db):
+        product_id = create_product("Test", 10.0, 15.0, 50, "2030-12-31")
+
+        with pytest.raises(ValidationError, match="Quantity must be a valid integer"):
+            sell_product(product_id, "abc")
+
+    def test_sell_product_zero_quantity_string(self, temp_db):
+        product_id = create_product("Test", 10.0, 15.0, 50, "2030-12-31")
+
+        with pytest.raises(ValidationError, match="Quantity must be greater than zero"):
+            sell_product(product_id, "0")
+
+    def test_sell_product_negative_quantity_string(self, temp_db):
+        product_id = create_product("Test", 10.0, 15.0, 50, "2030-12-31")
+
+        with pytest.raises(ValidationError, match="Quantity cannot be negative"):
+            sell_product(product_id, "-5")
     
     def test_sell_product_insufficient_stock(self, temp_db):
         product_id = create_product("Test", 10.0, 15.0, 10, "2030-12-31")
@@ -59,3 +92,34 @@ class TestSalesService:
         
         history = get_sales_history()
         assert len(history) == 2
+
+    def test_sell_product_rolls_back_stock_if_sale_insert_fails(self, temp_db, monkeypatch):
+        product_id = create_product("Transactional", 10.0, 15.0, 50, "2030-12-31")
+        original_record_sale_transaction = queries.record_sale_transaction
+
+        def failing_record_sale_transaction(*args, **kwargs):
+            from database.db import get_connection
+
+            conn = get_connection()
+            cursor = conn.cursor()
+            try:
+                cursor.execute(
+                    "UPDATE products SET quantity = ? WHERE id = ?",
+                    (45, product_id),
+                )
+                raise RuntimeError("sale insert failed")
+            except Exception:
+                conn.rollback()
+                raise
+            finally:
+                conn.close()
+
+        monkeypatch.setattr(queries, "record_sale_transaction", failing_record_sale_transaction)
+
+        with pytest.raises(RuntimeError, match="sale insert failed"):
+            sell_product(product_id, 5)
+
+        product = get_product(product_id)
+        assert product["quantity"] == 50
+        assert queries.get_all_sales() == []
+        monkeypatch.setattr(queries, "record_sale_transaction", original_record_sale_transaction)

@@ -161,6 +161,10 @@ class DashboardPage(ctk.CTkFrame):
         
         self.alerts_scroll = ctk.CTkScrollableFrame(self.alerts_frame, height=200)
         self.alerts_scroll.pack(fill="both", expand=True, padx=10, pady=10)
+
+    def on_show(self):
+        """Refresh dashboard data when the page becomes visible."""
+        self.load_metrics()
     
     def load_metrics(self):
         """Load and display dashboard metrics."""

@@ -143,7 +143,11 @@ class App(ctk.CTk):
         """
         try:
             if name in self.pages:
-                self.pages[name].tkraise()
+                page = self.pages[name]
+                on_show = getattr(page, "on_show", None)
+                if callable(on_show):
+                    on_show()
+                page.tkraise()
                 logger.debug(f"Switched to page: {name}")
                 monitoring.log_operation(f"page_switch_{name}")
         except Exception as e:

@@ -13,6 +13,7 @@ from database.queries import (
     get_low_stock_products,
     get_out_of_stock_products,
     record_sale,
+    record_sale_transaction,
     get_all_sales,
     get_total_earnings,
     get_total_profit,
@@ -22,6 +23,7 @@ from database.queries import (
     get_expiring_soon_products,
     get_best_selling_products
 )
+from database.db import get_connection
 
 
 class TestProductQueries:
@@ -137,6 +139,36 @@ class TestSalesQueries:
         
         sales = get_all_sales()
         assert len(sales) == 2
+
+    def test_record_sale_transaction_updates_stock_and_sale_together(self, temp_db):
+        product_id = add_product("Transactional", 10.0, 15.0, 50, "2030-12-31")
+
+        sale_id = record_sale_transaction(product_id, 5, 75.0, 25.0)
+
+        assert sale_id > 0
+        assert get_product_by_id(product_id)["quantity"] == 45
+        sales = get_all_sales()
+        assert len(sales) == 1
+        assert sales[0]["product_id"] == product_id
+
+    def test_runtime_connections_enable_foreign_keys(self, temp_db):
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("PRAGMA foreign_keys")
+        result = cursor.fetchone()
+        conn.close()
+
+        assert result[0] == 1
+
+    def test_delete_product_cascades_sales_on_runtime_connections(self, temp_db):
+        product_id = add_product("Cascade Product", 10.0, 15.0, 50, "2030-12-31")
+        record_sale_transaction(product_id, 5, 75.0, 25.0)
+
+        delete_product(product_id)
+
+        assert get_product_by_id(product_id) is None
+        assert get_all_sales() == []
 
 
 class TestDashboardQueries:

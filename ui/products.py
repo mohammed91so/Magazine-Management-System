@@ -179,9 +179,9 @@ class ProductsPage(ctk.CTkFrame):
         """Add a new product."""
         try:
             name = self.name_entry.get()
-            purchase_price = float(self.purchase_entry.get())
-            selling_price = float(self.selling_entry.get())
-            quantity = int(self.quantity_entry.get())
+            purchase_price = self.purchase_entry.get()
+            selling_price = self.selling_entry.get()
+            quantity = self.quantity_entry.get()
             expiration_date = self.expiration_entry.get()
             
             create_product(name, purchase_price, selling_price, quantity, expiration_date)
@@ -202,9 +202,9 @@ class ProductsPage(ctk.CTkFrame):
         
         try:
             name = self.name_entry.get()
-            purchase_price = float(self.purchase_entry.get())
-            selling_price = float(self.selling_entry.get())
-            quantity = int(self.quantity_entry.get())
+            purchase_price = self.purchase_entry.get()
+            selling_price = self.selling_entry.get()
+            quantity = self.quantity_entry.get()
             expiration_date = self.expiration_entry.get()
             
             update_product(
@@ -272,6 +272,10 @@ class ProductsPage(ctk.CTkFrame):
         self.quantity_entry.delete(0, "end")
         self.expiration_entry.delete(0, "end")
         self.selected_product_id = None
+
+    def on_show(self):
+        """Refresh product data when the page becomes visible."""
+        self.refresh()
     
     def refresh(self):
         """Refresh products table."""

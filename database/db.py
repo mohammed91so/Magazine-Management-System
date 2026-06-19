@@ -23,6 +23,7 @@ def get_connection() -> Optional[sqlite3.Connection]:
     """
     try:
         conn = sqlite3.connect(settings.DB_PATH)
+        conn.execute("PRAGMA foreign_keys = ON")
         conn.row_factory = sqlite3.Row  # access columns by name
         return conn
     except Error as e:
