@@ -158,6 +158,60 @@ def record_sale(product_id: int, quantity: int, total_price: float, profit: floa
     return sale_id
 
 
+def record_sale_transaction(product_id: int, quantity: int, total_price: float, profit: float) -> int:
+    """
+    Record a sale and decrement stock in a single transaction.
+
+    Args:
+        product_id: Product ID being sold.
+        quantity: Quantity sold.
+        total_price: Total sale price.
+        profit: Total profit for the sale.
+
+    Returns:
+        The created sale ID.
+
+    Raises:
+        ValueError: If the product is missing or stock is insufficient.
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("SELECT quantity FROM products WHERE id = ?", (product_id,))
+        product_row = cursor.fetchone()
+        if not product_row:
+            raise ValueError("Product not found")
+
+        current_quantity = product_row["quantity"]
+        if quantity > current_quantity:
+            raise ValueError("Insufficient stock")
+
+        new_quantity = current_quantity - quantity
+        cursor.execute("""
+            UPDATE products
+            SET quantity = ?
+            WHERE id = ?
+        """, (new_quantity, product_id))
+
+        cursor.execute("""
+            INSERT INTO sales (product_id, quantity, total_price, profit)
+            VALUES (?, ?, ?, ?)
+        """, (product_id, quantity, total_price, profit))
+
+        sale_id = cursor.lastrowid
+        conn.commit()
+        logger.info(
+            f"Recorded transactional sale: product_id={product_id}, quantity={quantity}, profit={profit}"
+        )
+        return sale_id
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
 def get_all_sales() -> List[Dict[str, Any]]:
     """Get all sales with product names."""
     conn = get_connection()

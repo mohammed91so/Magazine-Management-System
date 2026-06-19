@@ -7,7 +7,7 @@ Provides business logic for sales transactions.
 from typing import List, Dict, Any
 
 from database import queries
-from services.inventory_service import get_product, decrease_stock, get_expiration_status
+from services.inventory_service import get_product, get_expiration_status
 from utils.validators import validate_product_id, validate_quantity, ValidationError
 from utils.logging_config import logger
 
@@ -59,11 +59,8 @@ def sell_product(product_id: int, quantity: int) -> Dict[str, Any]:
     total_price = selling_price * quantity
     profit = (selling_price - purchase_price) * quantity
 
-    # Update stock (this will fail if stock check fails)
-    decrease_stock(product_id, quantity)
-
-    # Record sale
-    queries.record_sale(product_id, quantity, total_price, profit)
+    # Perform atomic stock decrement + sale insert
+    queries.record_sale_transaction(product_id, quantity, total_price, profit)
     
     logger.info(f"Sale completed: {product['name']} x{quantity} = ${total_price:.2f} (profit: ${profit:.2f})")
 

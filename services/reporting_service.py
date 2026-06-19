@@ -11,6 +11,7 @@ from datetime import datetime
 import pandas as pd
 
 from database import queries
+from services.analytics_service import get_dashboard_metrics
 from utils.logging_config import logger
 
 
@@ -209,7 +210,7 @@ class ReportingService:
                     products_df.to_excel(writer, sheet_name="Inventory", index=False)
                 
                 # Dashboard summary sheet
-                metrics = queries.get_dashboard_metrics()
+                metrics = get_dashboard_metrics()
                 metrics_df = pd.DataFrame(list(metrics.items()), columns=["Metric", "Value"])
                 metrics_df.to_excel(writer, sheet_name="Dashboard", index=False)
             
