@@ -4,7 +4,7 @@ Inventory service layer with transaction safety and validation.
 Provides business logic for product and inventory management.
 """
 
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
 from datetime import datetime, timedelta
 
 from database import queries
@@ -23,7 +23,13 @@ from utils.logging_config import logger
 # 📦 PRODUCT MANAGEMENT
 # ----------------------------
 
-def create_product(name: str, purchase_price: float, selling_price: float, quantity: int, expiration_date: str) -> int:
+def create_product(
+    name: str,
+    purchase_price: Union[str, float, int],
+    selling_price: Union[str, float, int],
+    quantity: Union[str, int],
+    expiration_date: str,
+) -> int:
     """
     Create a new product with validation.
     
@@ -54,7 +60,14 @@ def create_product(name: str, purchase_price: float, selling_price: float, quant
     return product_id
 
 
-def update_product(product_id: int, name: str, purchase_price: float, selling_price: float, quantity: int, expiration_date: str) -> None:
+def update_product(
+    product_id: int,
+    name: str,
+    purchase_price: Union[str, float, int],
+    selling_price: Union[str, float, int],
+    quantity: Union[str, int],
+    expiration_date: str,
+) -> None:
     """
     Update an existing product with validation.
     
@@ -153,7 +166,7 @@ def get_product(product_id: int) -> Dict[str, Any]:
 # 📊 STOCK MANAGEMENT
 # ----------------------------
 
-def increase_stock(product_id: int, quantity: int) -> None:
+def increase_stock(product_id: int, quantity: Union[str, int]) -> None:
     """
     Increase stock for a product.
     
@@ -181,7 +194,7 @@ def increase_stock(product_id: int, quantity: int) -> None:
     logger.info(f"Increased stock for product {product_id} by {quantity} (new: {new_quantity})")
 
 
-def decrease_stock(product_id: int, quantity: int) -> None:
+def decrease_stock(product_id: int, quantity: Union[str, int]) -> None:
     """
     Decrease stock for a product.
     

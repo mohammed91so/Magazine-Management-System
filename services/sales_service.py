@@ -4,7 +4,7 @@ Sales service layer with transaction safety and validation.
 Provides business logic for sales transactions.
 """
 
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
 
 from database import queries
 from services.inventory_service import get_product, get_expiration_status
@@ -16,7 +16,7 @@ from utils.logging_config import logger
 # 💰 CORE SALE LOGIC
 # ----------------------------
 
-def sell_product(product_id: int, quantity: int) -> Dict[str, Any]:
+def sell_product(product_id: int, quantity: Union[str, int]) -> Dict[str, Any]:
     """
     Process a product sale with validation and transaction safety.
     
